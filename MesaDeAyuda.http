@@ -1,0 +1,6 @@
+@MesaDeAyuda_HostAddress = http://localhost:5058
+
+GET {{MesaDeAyuda_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
