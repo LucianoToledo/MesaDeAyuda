@@ -12,9 +12,8 @@ public class SeedController : ControllerBase
     private readonly MesaAyudaDbContext _context;
     private readonly IHostEnvironment _environment;
 
-    public SeedController(
-        MesaAyudaDbContext context,
-        IHostEnvironment environment)
+    public SeedController(MesaAyudaDbContext context,
+                          IHostEnvironment environment)
     {
         _context = context;
         _environment = environment;

@@ -13,10 +13,9 @@ public class TipoCasoTipoInstanciaRepository : ITipoCasoTipoInstanciaRepository
         _context = context;
     }
 
-    public async Task<TipoCasoTipoInstancia?> ObtenerVigente(
-        int tipoCasoId,
-        int orden,
-        DateTime fecha)
+    public async Task<TipoCasoTipoInstancia?> ObtenerVigente(int tipoCasoId,
+                                                             int orden,
+                                                             DateTime fecha)
     {
         return await _context.TipoCasoTipoInstancia
             .FirstOrDefaultAsync(t =>

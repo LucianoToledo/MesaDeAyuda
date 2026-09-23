@@ -20,11 +20,10 @@ public class ExpertoTomarCaso : IExpertoTomarCaso
     private readonly IEstadoCasoRepository _estadoCasoRepository;
     private readonly IEstadoCasoInstanciaRepository _estadoCasoInstanciaRepository;
 
-    public ExpertoTomarCaso(
-        ICasoRepository casoRepository,
-        IEspecialistaRepository especialistaRepository,
-        IEstadoCasoRepository estadoCasoRepository,
-        IEstadoCasoInstanciaRepository estadoCasoInstanciaRepository)
+    public ExpertoTomarCaso(ICasoRepository casoRepository,
+                            IEspecialistaRepository especialistaRepository,
+                            IEstadoCasoRepository estadoCasoRepository,
+                            IEstadoCasoInstanciaRepository estadoCasoInstanciaRepository)
     {
         _casoRepository = casoRepository;
         _especialistaRepository = especialistaRepository;

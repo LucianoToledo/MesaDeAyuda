@@ -12,7 +12,9 @@ namespace MesaDeAyuda.Expertos;
 public interface IExpertoTarea
 {
     Task RegistrarTarea(int numeroCaso, RegistrarTareaRequestDto request);
+
     Task<IEnumerable<DTOTarea>> BuscarTareas(int numeroCaso);
+
     Task<IEnumerable<DTOTipoTarea>> BuscarTiposTarea();
 }
 
@@ -22,10 +24,9 @@ public class ExpertoTarea : IExpertoTarea
     private readonly IEspecialistaRepository _especialistaRepository;
     private readonly ITipoTareaRepository _tipoTareaRepository;
 
-    public ExpertoTarea(
-        ICasoRepository casoRepository,
-        IEspecialistaRepository especialistaRepository,
-        ITipoTareaRepository tipoTareaRepository)
+    public ExpertoTarea(ICasoRepository casoRepository,
+                        IEspecialistaRepository especialistaRepository,
+                        ITipoTareaRepository tipoTareaRepository)
     {
         _casoRepository = casoRepository;
         _especialistaRepository = especialistaRepository;

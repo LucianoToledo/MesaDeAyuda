@@ -12,7 +12,8 @@ public class FactoriaEstrategiaValidacionCierre
 
     public static FactoriaEstrategiaValidacionCierre Instancia => _instancia;
 
-    private FactoriaEstrategiaValidacionCierre() { }
+    private FactoriaEstrategiaValidacionCierre()
+    { }
 
     public IEstrategiaValidacionCierre ObtenerEstrategia(TipoValidacionCierre tipoValidacion)
     {

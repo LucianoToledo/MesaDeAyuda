@@ -10,7 +10,8 @@ public class FactoriaAdaptadorNotificacionCliente
 
     public static FactoriaAdaptadorNotificacionCliente Instancia => _instancia;
 
-    private FactoriaAdaptadorNotificacionCliente() { }
+    private FactoriaAdaptadorNotificacionCliente()
+    { }
 
     // Sin preferencia de canal por cliente todavia (no existe entidad Cliente local):
     // devuelve siempre el canal por defecto de la empresa.
