@@ -39,11 +39,16 @@ public class AsentarResultadoController : ControllerBase
     /// <summary>
     /// Asienta el resultado (Resuelto/NoResuelto) de la instancia asignada al especialista y
     /// aplica las transiciones de estado del Camino Básico y los Caminos Alternos N°5/N°6.
+    /// Si la validación de cierre rechaza el intento, devuelve 400 sin pasar por el filtro global.
     /// </summary>
     [HttpPost("casos/asentar-resultado")]
     public async Task<IActionResult> IngresarRespuesta(AsentarResultadoRequestDto request)
     {
-        await _experto.IngresarRespuesta(request);
+        var resultado = await _experto.IngresarRespuesta(request);
+
+        if (!resultado.EsValido)
+            return BadRequest(new { mensaje = resultado.Mensaje });
+
         return NoContent();
     }
 }

@@ -13,7 +13,7 @@ public interface IExpertoAsentarResultado
 
     Task<DTOCaso> BuscarCaso(int nroLegajoEspecialista, int numeroCaso);
 
-    Task IngresarRespuesta(AsentarResultadoRequestDto request);
+    Task<DTOResultadoValidacion> IngresarRespuesta(AsentarResultadoRequestDto request);
 }
 
 public class ExpertoAsentarResultado : IExpertoAsentarResultado
@@ -51,7 +51,7 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
                            caso.Observaciones);
     }
 
-    public async Task IngresarRespuesta(AsentarResultadoRequestDto request)
+    public async Task<DTOResultadoValidacion> IngresarRespuesta(AsentarResultadoRequestDto request)
     {
         var especialista = await ValidarEspecialista(request.NroLegajoEspecialista);
         var (caso, instanciaActual) = await ObtenerCasoConInstanciaAsignada(request.NumeroCaso);
@@ -60,7 +60,9 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
 
         instanciaActual.Observaciones = request.Observaciones ?? string.Empty;
 
-        ValidarCierreInstancia(instanciaActual);
+        var resultadoValidacion = ValidarCierreInstancia(instanciaActual);
+        if (!resultadoValidacion.EsValido)
+            return resultadoValidacion;
 
         if (request.Respuesta)
             await RegistrarResolucionExitosa(caso, instanciaActual);
@@ -68,6 +70,8 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
             await RegistrarInstanciaSinResolver(caso, instanciaActual);
 
         await _persistencia.Guardar(caso);
+
+        return new DTOResultadoValidacion(true, string.Empty);
     }
 
     private async Task<Especialista> ValidarEspecialista(int nroLegajoEspecialista)
@@ -110,11 +114,12 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
     // Nuevo Camino Alterno: rechaza el asentamiento si no se cumple la documentación mínima exigida
     // para el tipo de instancia (aplica tanto a "Resuelto" como a "Sin Resolver"). La fábrica resuelve
     // ella misma la configuración vigente navegando la instancia, sin que el Experto conozca esas clases.
-    private static void ValidarCierreInstancia(CasoInstancia instanciaActual)
+    // El rechazo llega como valor de retorno, no como excepción (ver documentación del proyecto, Sección 9).
+    private static DTOResultadoValidacion ValidarCierreInstancia(CasoInstancia instanciaActual)
     {
         var estrategia = FactoriaEstrategiaValidacionCierre.Instancia.ObtenerEstrategia(instanciaActual);
 
-        estrategia.ValidarCierre(instanciaActual);
+        return estrategia.ValidarCierre(instanciaActual);
     }
 
     // Camino Básico, pasos 9.1 a 9.8, + paso 9.9 agregado (notificar al cliente)

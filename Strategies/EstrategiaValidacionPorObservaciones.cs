@@ -1,5 +1,5 @@
 using MesaDeAyuda.Domain.Entities;
-using MesaDeAyuda.Domain.Exceptions;
+using MesaDeAyuda.DTOs;
 
 namespace MesaDeAyuda.Strategies;
 
@@ -12,11 +12,13 @@ public class EstrategiaValidacionPorObservaciones : IEstrategiaValidacionCierre
         _logger = logger;
     }
 
-    public void ValidarCierre(CasoInstancia instancia)
+    public DTOResultadoValidacion ValidarCierre(CasoInstancia instancia)
     {
         _logger.LogInformation("Ejecutando estrategia {Estrategia}", nameof(EstrategiaValidacionPorObservaciones));
 
         if (string.IsNullOrWhiteSpace(instancia.Observaciones))
-            throw new BusinessException("Debe completar las observaciones de la instancia antes de poder asentar el resultado.");
+            return new DTOResultadoValidacion(false, "Debe completar las observaciones de la instancia antes de poder asentar el resultado.");
+
+        return new DTOResultadoValidacion(true, string.Empty);
     }
 }

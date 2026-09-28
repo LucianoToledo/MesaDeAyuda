@@ -1,5 +1,5 @@
 using MesaDeAyuda.Domain.Entities;
-using MesaDeAyuda.Domain.Exceptions;
+using MesaDeAyuda.DTOs;
 
 namespace MesaDeAyuda.Strategies;
 
@@ -12,11 +12,13 @@ public class EstrategiaValidacionPorTareaRegistrada : IEstrategiaValidacionCierr
         _logger = logger;
     }
 
-    public void ValidarCierre(CasoInstancia instancia)
+    public DTOResultadoValidacion ValidarCierre(CasoInstancia instancia)
     {
         _logger.LogInformation("Ejecutando estrategia {Estrategia}", nameof(EstrategiaValidacionPorTareaRegistrada));
 
         if (!instancia.Tareas.Any())
-            throw new BusinessException("Debe registrar al menos una tarea antes de poder asentar el resultado de la instancia.");
+            return new DTOResultadoValidacion(false, "Debe registrar al menos una tarea antes de poder asentar el resultado de la instancia.");
+
+        return new DTOResultadoValidacion(true, string.Empty);
     }
 }

@@ -1,4 +1,5 @@
 using MesaDeAyuda.Domain.Entities;
+using MesaDeAyuda.DTOs;
 
 namespace MesaDeAyuda.Strategies;
 
@@ -11,9 +12,11 @@ public class EstrategiaValidacionSimple : IEstrategiaValidacionCierre
         _logger = logger;
     }
 
-    public void ValidarCierre(CasoInstancia instancia)
+    public DTOResultadoValidacion ValidarCierre(CasoInstancia instancia)
     {
         _logger.LogInformation("Ejecutando estrategia {Estrategia}", nameof(EstrategiaValidacionSimple));
+
         // No exige ninguna documentación previa.
+        return new DTOResultadoValidacion(true, string.Empty);
     }
 }
