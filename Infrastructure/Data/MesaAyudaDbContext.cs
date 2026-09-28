@@ -18,6 +18,7 @@ public class MesaAyudaDbContext : DbContext
     public DbSet<TipoInstancia> TipoInstancia { get; set; }
     public DbSet<TipoTarea> TipoTarea { get; set; }
     public DbSet<TipoCasoTipoInstancia> TipoCasoTipoInstancia { get; set; }
+    public DbSet<TipoValidacionCierre> TipoValidacionCierre { get; set; }
     public DbSet<TipoCasoIteracion> TipoCasoIteracion { get; set; }
     public DbSet<EstadoCaso> EstadoCaso { get; set; }
     public DbSet<EstadoCasoInstancia> EstadoCasoInstancia { get; set; }
@@ -51,6 +52,7 @@ public class MesaAyudaDbContext : DbContext
         modelBuilder.Entity<CasoInstancia>().Navigation(ci => ci.Especialista).AutoInclude();
         modelBuilder.Entity<CasoInstancia>().Navigation(ci => ci.TipoInstancia).AutoInclude();
         modelBuilder.Entity<CasoInstancia>().Navigation(ci => ci.Tareas).AutoInclude();
+        modelBuilder.Entity<TipoCasoTipoInstancia>().Navigation(t => t.TipoValidacionCierre).AutoInclude();
 
         SeedData(modelBuilder);
     }
@@ -75,6 +77,12 @@ public class MesaAyudaDbContext : DbContext
             new EstadoCasoInstancia { Id = 5, Nombre = "A Asignar" },
             new EstadoCasoInstancia { Id = 6, Nombre = "Sin Asignar" },
             new EstadoCasoInstancia { Id = 7, Nombre = "Caducada" }
+        );
+
+        modelBuilder.Entity<TipoValidacionCierre>().HasData(
+            new TipoValidacionCierre { Id = 1, Nombre = "Simple" },
+            new TipoValidacionCierre { Id = 2, Nombre = "PorObservaciones" },
+            new TipoValidacionCierre { Id = 3, Nombre = "PorTareaRegistrada" }
         );
 
         modelBuilder.Entity<Sector>().HasData(
@@ -114,10 +122,11 @@ public class MesaAyudaDbContext : DbContext
 
         // TipoCasoTipoInstancia reemplaza a ConfiguracionInstancia: agrega vigencia (FechaAlta/FechaBaja) sobre la
         // misma configuración (orden + tiempo máximo, ahora en minutos) que antes vivía en ConfiguracionInstancia.
+        // TipoValidacionCierreId: 1 = Simple, 2 = PorObservaciones, 3 = PorTareaRegistrada (ver seed de TipoValidacionCierre).
         modelBuilder.Entity<TipoCasoTipoInstancia>().HasData(
-            new TipoCasoTipoInstancia { Id = 1, Orden = 1, MinutosMaximaResolucion = 1440, FechaAlta = fecha.AddYears(-1), TipoCasoId = 1, TipoInstanciaId = 1, TipoValidacionCierre = TipoValidacionCierre.Simple },
-            new TipoCasoTipoInstancia { Id = 2, Orden = 2, MinutosMaximaResolucion = 2880, FechaAlta = fecha.AddYears(-1), TipoCasoId = 1, TipoInstanciaId = 2, TipoValidacionCierre = TipoValidacionCierre.PorTareaRegistrada },
-            new TipoCasoTipoInstancia { Id = 3, Orden = 3, MinutosMaximaResolucion = 4320, FechaAlta = fecha.AddYears(-1), TipoCasoId = 1, TipoInstanciaId = 3, TipoValidacionCierre = TipoValidacionCierre.PorObservaciones }
+            new TipoCasoTipoInstancia { Id = 1, Orden = 1, MinutosMaximaResolucion = 1440, FechaAlta = fecha.AddYears(-1), TipoCasoId = 1, TipoInstanciaId = 1, TipoValidacionCierreId = 1 },
+            new TipoCasoTipoInstancia { Id = 2, Orden = 2, MinutosMaximaResolucion = 2880, FechaAlta = fecha.AddYears(-1), TipoCasoId = 1, TipoInstanciaId = 2, TipoValidacionCierreId = 3 },
+            new TipoCasoTipoInstancia { Id = 3, Orden = 3, MinutosMaximaResolucion = 4320, FechaAlta = fecha.AddYears(-1), TipoCasoId = 1, TipoInstanciaId = 3, TipoValidacionCierreId = 2 }
         );
 
         // Caso 1001: instancia 1 "Asignada" a Juan Pérez (legajo 1001) — camino feliz (Resuelto / NoResuelto con siguiente instancia disponible).

@@ -1,8 +1,8 @@
 namespace MesaDeAyuda.Domain.Entities;
 
-public enum TipoValidacionCierre
+public class TipoValidacionCierre
 {
-    Simple = 0,
-    PorObservaciones = 1,
-    PorTareaRegistrada = 2
+    public int Id { get; set; }
+    public string Nombre { get; set; } = string.Empty; // Simple, PorObservaciones, PorTareaRegistrada
+    public DateTime? FechaHoraBaja { get; set; }
 }

@@ -118,8 +118,7 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
         var configuracion = resultado.Cast<TipoCasoTipoInstancia>()
             .FirstOrDefault(t => t.FechaAlta <= fechaActual && (t.FechaBaja == null || t.FechaBaja > fechaActual));
 
-        var tipoValidacion = configuracion?.TipoValidacionCierre ?? TipoValidacionCierre.Simple;
-        var estrategia = FactoriaEstrategiaValidacionCierre.Instancia.ObtenerEstrategia(tipoValidacion);
+        var estrategia = FactoriaEstrategiaValidacionCierre.Instancia.ObtenerEstrategia(configuracion?.TipoValidacionCierre);
 
         estrategia.ValidarCierre(instanciaActual);
     }
