@@ -1,7 +1,7 @@
 using MesaDeAyuda.Expertos;
 using MesaDeAyuda.Filters;
 using MesaDeAyuda.Infrastructure.Data;
-using MesaDeAyuda.Repositories;
+using MesaDeAyuda.Persistencia;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,13 +24,8 @@ builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddDbContext<MesaAyudaDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Repositorios
-builder.Services.AddScoped<ICasoRepository, CasoRepository>();
-builder.Services.AddScoped<IEspecialistaRepository, EspecialistaRepository>();
-builder.Services.AddScoped<IEstadoCasoRepository, EstadoCasoRepository>();
-builder.Services.AddScoped<IEstadoCasoInstanciaRepository, EstadoCasoInstanciaRepository>();
-builder.Services.AddScoped<ITipoCasoTipoInstanciaRepository, TipoCasoTipoInstanciaRepository>();
-builder.Services.AddScoped<ITipoTareaRepository, TipoTareaRepository>();
+// Indirección de Persistencia (reemplaza a los Repositories, ver documentación del proyecto, Sección 9)
+builder.Services.AddScoped<IndireccionPersistencia>();
 
 // Experto (Capa de lógica de negocio)
 builder.Services.AddScoped<IExpertoAsentarResultado, ExpertoAsentarResultado>();

@@ -2,7 +2,7 @@ using MesaDeAyuda.Adapters;
 using MesaDeAyuda.Domain.Entities;
 using MesaDeAyuda.Domain.Exceptions;
 using MesaDeAyuda.DTOs;
-using MesaDeAyuda.Repositories;
+using MesaDeAyuda.Persistencia;
 using MesaDeAyuda.Strategies;
 
 namespace MesaDeAyuda.Expertos;
@@ -18,23 +18,11 @@ public interface IExpertoAsentarResultado
 
 public class ExpertoAsentarResultado : IExpertoAsentarResultado
 {
-    private readonly ICasoRepository _casoRepository;
-    private readonly IEspecialistaRepository _especialistaRepository;
-    private readonly IEstadoCasoRepository _estadoCasoRepository;
-    private readonly IEstadoCasoInstanciaRepository _estadoCasoInstanciaRepository;
-    private readonly ITipoCasoTipoInstanciaRepository _tipoCasoTipoInstanciaRepository;
+    private readonly IndireccionPersistencia _persistencia;
 
-    public ExpertoAsentarResultado(ICasoRepository casoRepository,
-                                   IEspecialistaRepository especialistaRepository,
-                                   IEstadoCasoRepository estadoCasoRepository,
-                                   IEstadoCasoInstanciaRepository estadoCasoInstanciaRepository,
-                                   ITipoCasoTipoInstanciaRepository tipoCasoTipoInstanciaRepository)
+    public ExpertoAsentarResultado(IndireccionPersistencia persistencia)
     {
-        _casoRepository = casoRepository;
-        _especialistaRepository = especialistaRepository;
-        _estadoCasoRepository = estadoCasoRepository;
-        _estadoCasoInstanciaRepository = estadoCasoInstanciaRepository;
-        _tipoCasoTipoInstanciaRepository = tipoCasoTipoInstanciaRepository;
+        _persistencia = persistencia;
     }
 
     public async Task<DTOEspecialista> BuscarEspecialista(int nroLegajoEspecialista)
@@ -79,7 +67,7 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
         else
             await RegistrarInstanciaSinResolver(caso, instanciaActual);
 
-        await _casoRepository.UpdateAsync(caso);
+        await _persistencia.Guardar(caso);
     }
 
     private async Task<Especialista> ValidarEspecialista(int nroLegajoEspecialista)
@@ -87,7 +75,10 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
         if (nroLegajoEspecialista <= 0)
             throw new BusinessException("Los datos ingresados son incorrectos. Intente nuevamente.");
 
-        return await _especialistaRepository.GetByLegajoAsync(nroLegajoEspecialista)
+        var resultado = await _persistencia.Buscar("Especialista",
+                                                    $"Legajo == {nroLegajoEspecialista} AND FechaHoraBaja == null");
+
+        return resultado.Cast<Especialista>().FirstOrDefault()
             ?? throw new BusinessException("No se ha podido encontrar el Especialista ingresado. Intente nuevamente.");
     }
 
@@ -96,7 +87,9 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
         if (numeroCaso <= 0)
             throw new BusinessException("Los datos ingresados son incorrectos. Intente nuevamente.");
 
-        var caso = await _casoRepository.GetByNumeroAsync(numeroCaso);
+        var resultado = await _persistencia.Buscar("Caso", $"NumeroCaso == {numeroCaso}");
+        var caso = resultado.Cast<Caso>().FirstOrDefault();
+
         if (caso is null || caso.EstadoActual?.Nombre != "Tomado")
             throw new BusinessException("No se ha podido encontrar el Caso ingresado. Intente nuevamente.");
 
@@ -118,9 +111,12 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
     // para el tipo de instancia (aplica tanto a "Resuelto" como a "Sin Resolver").
     private async Task ValidarCierreInstancia(Caso caso, CasoInstancia instanciaActual)
     {
-        var configuracion = await _tipoCasoTipoInstanciaRepository.ObtenerVigente(caso.TipoCasoId,
-                                                                                  instanciaActual.OrdenCasoInstancia,
-                                                                                  DateTime.UtcNow);
+        var resultado = await _persistencia.Buscar("TipoCasoTipoInstancia",
+                                                    $"TipoCasoId == {caso.TipoCasoId} AND Orden == {instanciaActual.OrdenCasoInstancia}");
+
+        var fechaActual = DateTime.UtcNow;
+        var configuracion = resultado.Cast<TipoCasoTipoInstancia>()
+            .FirstOrDefault(t => t.FechaAlta <= fechaActual && (t.FechaBaja == null || t.FechaBaja > fechaActual));
 
         var tipoValidacion = configuracion?.TipoValidacionCierre ?? TipoValidacionCierre.Simple;
         var estrategia = FactoriaEstrategiaValidacionCierre.Instancia.ObtenerEstrategia(tipoValidacion);
@@ -131,13 +127,13 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
     // Camino Básico, pasos 9.1 a 9.8, + paso 9.9 agregado (notificar al cliente)
     private async Task RegistrarResolucionExitosa(Caso caso, CasoInstancia instanciaActual)
     {
-        var estadoResuelto = await _estadoCasoInstanciaRepository.GetByNombreAsync("Resuelto") ?? throw new BusinessException("No se encontró el estado 'Resuelto'.");
+        var estadoResuelto = await BuscarEstadoCasoInstancia("Resuelto");
 
         instanciaActual.FechaHoraFinReal = DateTime.UtcNow;
         instanciaActual.EstadoId = estadoResuelto.Id;
         instanciaActual.EstadoActual = estadoResuelto;
 
-        var estadoCancelada = await _estadoCasoInstanciaRepository.GetByNombreAsync("Cancelada") ?? throw new BusinessException("No se encontró el estado 'Cancelada'.");
+        var estadoCancelada = await BuscarEstadoCasoInstancia("Cancelada");
 
         foreach (var instancia in caso.Instancias.Where(i => i.Id != instanciaActual.Id && i.EstadoActual?.Nombre == "Sin Asignar"))
         {
@@ -145,7 +141,7 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
             instancia.EstadoActual = estadoCancelada;
         }
 
-        var estadoCerrado = await _estadoCasoRepository.GetByNombreAsync("Cerrado") ?? throw new BusinessException("No se encontró el estado 'Cerrado'.");
+        var estadoCerrado = await BuscarEstadoCaso("Cerrado");
 
         caso.FechaHoraFinCaso = DateTime.UtcNow;
         caso.EstadoId = estadoCerrado.Id;
@@ -160,7 +156,7 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
     // Camino Alterno N°5 (y, si corresponde, N°6): la instancia actual queda "Sin Resolver"
     private async Task RegistrarInstanciaSinResolver(Caso caso, CasoInstancia instanciaActual)
     {
-        var estadoSinResolver = await _estadoCasoInstanciaRepository.GetByNombreAsync("Sin Resolver") ?? throw new BusinessException("No se encontró el estado 'Sin Resolver'.");
+        var estadoSinResolver = await BuscarEstadoCasoInstancia("Sin Resolver");
 
         instanciaActual.FechaHoraFinReal = DateTime.UtcNow;
         instanciaActual.EstadoId = estadoSinResolver.Id;
@@ -170,12 +166,12 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
 
         if (siguienteInstancia is not null)
         {
-            var estadoAAsignar = await _estadoCasoInstanciaRepository.GetByNombreAsync("A Asignar") ?? throw new BusinessException("No se encontró el estado 'A Asignar'.");
+            var estadoAAsignar = await BuscarEstadoCasoInstancia("A Asignar");
 
             siguienteInstancia.EstadoId = estadoAAsignar.Id;
             siguienteInstancia.EstadoActual = estadoAAsignar;
 
-            var estadoDisponible = await _estadoCasoRepository.GetByNombreAsync("Disponible") ?? throw new BusinessException("No se encontró el estado 'Disponible'.");
+            var estadoDisponible = await BuscarEstadoCaso("Disponible");
             caso.EstadoId = estadoDisponible.Id;
             caso.EstadoActual = estadoDisponible;
 
@@ -183,7 +179,7 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
         }
 
         // Camino Alterno N°6: la instancia sin resolver es la última de la iteración.
-        var estadoTerminadoSinExito = await _estadoCasoRepository.GetByNombreAsync("Terminado Sin Éxito en la Iteración") ?? throw new BusinessException("No se encontró el estado 'Terminado Sin Éxito en la Iteración'.");
+        var estadoTerminadoSinExito = await BuscarEstadoCaso("Terminado Sin Éxito en la Iteración");
 
         caso.FechaHoraFinCaso = DateTime.UtcNow;
         caso.EstadoId = estadoTerminadoSinExito.Id;
@@ -191,5 +187,21 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
 
         // Camino Alterno N°7 / Inclusión CU IterarCaso: ese CU todavía no está especificado.
         // TODO: invocar CU IterarCaso(caso.NumeroCaso) cuando esté diseñado.
+    }
+
+    private async Task<EstadoCaso> BuscarEstadoCaso(string nombre)
+    {
+        var resultado = await _persistencia.Buscar("EstadoCaso", $"Nombre == \"{nombre}\" AND FechaHoraBaja == null");
+
+        return resultado.Cast<EstadoCaso>().FirstOrDefault()
+            ?? throw new BusinessException($"No se encontró el estado '{nombre}'.");
+    }
+
+    private async Task<EstadoCasoInstancia> BuscarEstadoCasoInstancia(string nombre)
+    {
+        var resultado = await _persistencia.Buscar("EstadoCasoInstancia", $"Nombre == \"{nombre}\" AND FechaHoraBaja == null");
+
+        return resultado.Cast<EstadoCasoInstancia>().FirstOrDefault()
+            ?? throw new BusinessException($"No se encontró el estado '{nombre}'.");
     }
 }

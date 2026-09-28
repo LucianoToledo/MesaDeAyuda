@@ -1,7 +1,7 @@
 using MesaDeAyuda.Domain.Entities;
 using MesaDeAyuda.Domain.Exceptions;
 using MesaDeAyuda.DTOs;
-using MesaDeAyuda.Repositories;
+using MesaDeAyuda.Persistencia;
 
 namespace MesaDeAyuda.Expertos;
 
@@ -20,26 +20,21 @@ public interface IExpertoTarea
 
 public class ExpertoTarea : IExpertoTarea
 {
-    private readonly ICasoRepository _casoRepository;
-    private readonly IEspecialistaRepository _especialistaRepository;
-    private readonly ITipoTareaRepository _tipoTareaRepository;
+    private readonly IndireccionPersistencia _persistencia;
 
-    public ExpertoTarea(ICasoRepository casoRepository,
-                        IEspecialistaRepository especialistaRepository,
-                        ITipoTareaRepository tipoTareaRepository)
+    public ExpertoTarea(IndireccionPersistencia persistencia)
     {
-        _casoRepository = casoRepository;
-        _especialistaRepository = especialistaRepository;
-        _tipoTareaRepository = tipoTareaRepository;
+        _persistencia = persistencia;
     }
 
     public async Task RegistrarTarea(int numeroCaso, RegistrarTareaRequestDto request)
     {
-        var especialista = await _especialistaRepository.GetByLegajoAsync(request.NroLegajoEspecialista)
+        var especialistas = await _persistencia.Buscar("Especialista",
+                                                        $"Legajo == {request.NroLegajoEspecialista} AND FechaHoraBaja == null");
+        var especialista = especialistas.Cast<Especialista>().FirstOrDefault()
             ?? throw new BusinessException("No se ha podido encontrar el Especialista ingresado.");
 
-        var caso = await _casoRepository.GetByNumeroAsync(numeroCaso)
-            ?? throw new BusinessException("No se ha podido encontrar el Caso ingresado.");
+        var caso = await ObtenerCaso(numeroCaso);
 
         var instanciaAsignada = caso.Instancias.FirstOrDefault(i =>
             i.EstadoActual?.Nombre == "Asignada" && i.EspecialistaId == especialista.Id)
@@ -53,13 +48,12 @@ public class ExpertoTarea : IExpertoTarea
             FechaHoraFin = DateTime.UtcNow
         });
 
-        await _casoRepository.UpdateAsync(caso);
+        await _persistencia.Guardar(caso);
     }
 
     public async Task<IEnumerable<DTOTarea>> BuscarTareas(int numeroCaso)
     {
-        var caso = await _casoRepository.GetByNumeroAsync(numeroCaso)
-            ?? throw new BusinessException("No se ha podido encontrar el Caso ingresado.");
+        var caso = await ObtenerCaso(numeroCaso);
 
         return caso.Instancias
             .SelectMany(i => i.Tareas.Select(t => new DTOTarea(
@@ -74,11 +68,19 @@ public class ExpertoTarea : IExpertoTarea
 
     public async Task<IEnumerable<DTOTipoTarea>> BuscarTiposTarea()
     {
-        var tiposTarea = await _tipoTareaRepository.GetAllAsync();
+        var resultado = await _persistencia.Buscar("TipoTarea", "FechaHoraBaja == null");
 
-        return tiposTarea.Select(t => new DTOTipoTarea(
+        return resultado.Cast<TipoTarea>().Select(t => new DTOTipoTarea(
             t.Id,
             t.Nombre,
             t.Descripcion));
+    }
+
+    private async Task<Caso> ObtenerCaso(int numeroCaso)
+    {
+        var resultado = await _persistencia.Buscar("Caso", $"NumeroCaso == {numeroCaso}");
+
+        return resultado.Cast<Caso>().FirstOrDefault()
+            ?? throw new BusinessException("No se ha podido encontrar el Caso ingresado.");
     }
 }

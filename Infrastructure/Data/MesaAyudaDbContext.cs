@@ -39,6 +39,19 @@ public class MesaAyudaDbContext : DbContext
             .WithMany()
             .HasForeignKey(ci => ci.EstadoId);
 
+        // IndireccionPersistencia (ver documentación del proyecto, Sección 9) busca siempre la
+        // instancia con todas sus relaciones, sin que cada búsqueda declare su propio Include.
+        // Estas navegaciones reemplazan a los Include manuales que tenía CasoRepository. Una
+        // navegación marcada AutoInclude también se trae cuando se llega a ella de forma indirecta,
+        // por eso alcanza con declararla una vez sobre CasoInstancia aunque se acceda desde Caso.
+        modelBuilder.Entity<Caso>().Navigation(c => c.EstadoActual).AutoInclude();
+        modelBuilder.Entity<Caso>().Navigation(c => c.Instancias).AutoInclude();
+
+        modelBuilder.Entity<CasoInstancia>().Navigation(ci => ci.EstadoActual).AutoInclude();
+        modelBuilder.Entity<CasoInstancia>().Navigation(ci => ci.Especialista).AutoInclude();
+        modelBuilder.Entity<CasoInstancia>().Navigation(ci => ci.TipoInstancia).AutoInclude();
+        modelBuilder.Entity<CasoInstancia>().Navigation(ci => ci.Tareas).AutoInclude();
+
         SeedData(modelBuilder);
     }
 

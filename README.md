@@ -25,7 +25,7 @@ Capas simplificadas en un único proyecto, pensadas para desacoplar responsabili
 | `Adapters/` | Integración con mecanismos externos de notificación (ver Adapter más abajo). |
 | `Domain/Entities/` | Modelo de dominio. |
 | `Domain/Exceptions/` | Excepciones propias del dominio (`BusinessException`). |
-| `Repositories/` | Acceso a datos a través de interfaces. |
+| `Persistencia/` | `IndireccionPersistencia`, acceso a datos centralizado (patrón Indirección). |
 | `Infrastructure/Data/` | `DbContext`, mapeos de EF Core y seed de datos. |
 | `Filters/` | Filtros globales de MVC (`BusinessExceptionFilter`, traduce `BusinessException` a `400`). |
 

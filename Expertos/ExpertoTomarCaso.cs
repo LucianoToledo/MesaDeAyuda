@@ -1,6 +1,7 @@
+using MesaDeAyuda.Domain.Entities;
 using MesaDeAyuda.Domain.Exceptions;
 using MesaDeAyuda.DTOs;
-using MesaDeAyuda.Repositories;
+using MesaDeAyuda.Persistencia;
 
 namespace MesaDeAyuda.Expertos;
 
@@ -15,35 +16,30 @@ public interface IExpertoTomarCaso
 
 public class ExpertoTomarCaso : IExpertoTomarCaso
 {
-    private readonly ICasoRepository _casoRepository;
-    private readonly IEspecialistaRepository _especialistaRepository;
-    private readonly IEstadoCasoRepository _estadoCasoRepository;
-    private readonly IEstadoCasoInstanciaRepository _estadoCasoInstanciaRepository;
+    private readonly IndireccionPersistencia _persistencia;
 
-    public ExpertoTomarCaso(ICasoRepository casoRepository,
-                            IEspecialistaRepository especialistaRepository,
-                            IEstadoCasoRepository estadoCasoRepository,
-                            IEstadoCasoInstanciaRepository estadoCasoInstanciaRepository)
+    public ExpertoTomarCaso(IndireccionPersistencia persistencia)
     {
-        _casoRepository = casoRepository;
-        _especialistaRepository = especialistaRepository;
-        _estadoCasoRepository = estadoCasoRepository;
-        _estadoCasoInstanciaRepository = estadoCasoInstanciaRepository;
+        _persistencia = persistencia;
     }
 
     public async Task TomarInstancia(TomarCasoRequestDto request)
     {
-        var especialista = await _especialistaRepository.GetByLegajoAsync(request.NroLegajoEspecialista)
+        var especialistas = await _persistencia.Buscar("Especialista",
+                                                        $"Legajo == {request.NroLegajoEspecialista} AND FechaHoraBaja == null");
+        var especialista = especialistas.Cast<Especialista>().FirstOrDefault()
             ?? throw new BusinessException("No se ha podido encontrar el Especialista ingresado.");
 
-        var caso = await _casoRepository.GetByNumeroAsync(request.NumeroCaso)
+        var casos = await _persistencia.Buscar("Caso", $"NumeroCaso == {request.NumeroCaso}");
+        var caso = casos.Cast<Caso>().FirstOrDefault()
             ?? throw new BusinessException("No se ha podido encontrar el Caso ingresado.");
 
         var instanciaDisponible = caso.Instancias.FirstOrDefault(i =>
             i.EstadoActual?.Nombre == "A Asignar" && i.TipoInstancia!.SectorId == especialista.SectorId)
             ?? throw new BusinessException("No hay ninguna instancia disponible en su sector para este caso.");
 
-        var estadoAsignada = await _estadoCasoInstanciaRepository.GetByNombreAsync("Asignada")
+        var estadosAsignada = await _persistencia.Buscar("EstadoCasoInstancia", "Nombre == \"Asignada\" AND FechaHoraBaja == null");
+        var estadoAsignada = estadosAsignada.Cast<EstadoCasoInstancia>().FirstOrDefault()
             ?? throw new BusinessException("No se encontró el estado 'Asignada'.");
 
         instanciaDisponible.EspecialistaId = especialista.Id;
@@ -51,12 +47,13 @@ public class ExpertoTomarCaso : IExpertoTomarCaso
         instanciaDisponible.EstadoActual = estadoAsignada;
         instanciaDisponible.FechaHoraInicioReal = DateTime.UtcNow;
 
-        var estadoTomado = await _estadoCasoRepository.GetByNombreAsync("Tomado")
+        var estadosTomado = await _persistencia.Buscar("EstadoCaso", "Nombre == \"Tomado\" AND FechaHoraBaja == null");
+        var estadoTomado = estadosTomado.Cast<EstadoCaso>().FirstOrDefault()
             ?? throw new BusinessException("No se encontró el estado 'Tomado'.");
 
         caso.EstadoId = estadoTomado.Id;
         caso.EstadoActual = estadoTomado;
 
-        await _casoRepository.UpdateAsync(caso);
+        await _persistencia.Guardar(caso);
     }
 }
