@@ -22,6 +22,8 @@ public class MesaAyudaDbContext : DbContext
     public DbSet<TipoCasoIteracion> TipoCasoIteracion { get; set; }
     public DbSet<EstadoCaso> EstadoCaso { get; set; }
     public DbSet<EstadoCasoInstancia> EstadoCasoInstancia { get; set; }
+    public DbSet<CanalNotificacion> CanalNotificacion { get; set; }
+    public DbSet<ConfiguracionNotificacion> ConfiguracionNotificacion { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,6 +59,8 @@ public class MesaAyudaDbContext : DbContext
         modelBuilder.Entity<TipoCaso>().Navigation(t => t.TiposCasoTipoInstancia).AutoInclude();
         modelBuilder.Entity<TipoCasoTipoInstancia>().Navigation(t => t.TipoValidacionCierre).AutoInclude();
 
+        modelBuilder.Entity<ConfiguracionNotificacion>().Navigation(c => c.CanalHabilitado).AutoInclude();
+
         SeedData(modelBuilder);
     }
 
@@ -86,6 +90,17 @@ public class MesaAyudaDbContext : DbContext
             new TipoValidacionCierre { Id = 1, Nombre = "Simple" },
             new TipoValidacionCierre { Id = 2, Nombre = "PorObservaciones" },
             new TipoValidacionCierre { Id = 3, Nombre = "PorTareaRegistrada" }
+        );
+
+        // Configuración a nivel empresa (una sola fila): qué canal usa hoy el sistema para
+        // notificar al cliente que su caso fue resuelto (ver documentación del proyecto, Sección 9).
+        modelBuilder.Entity<CanalNotificacion>().HasData(
+            new CanalNotificacion { Id = 1, Nombre = "Email" },
+            new CanalNotificacion { Id = 2, Nombre = "Sms" }
+        );
+
+        modelBuilder.Entity<ConfiguracionNotificacion>().HasData(
+            new ConfiguracionNotificacion { Id = 1, CanalHabilitadoId = 1 }
         );
 
         modelBuilder.Entity<Sector>().HasData(

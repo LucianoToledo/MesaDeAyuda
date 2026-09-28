@@ -3,6 +3,7 @@ using System;
 using MesaDeAyuda.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MesaDeAyuda.Migrations
 {
     [DbContext(typeof(MesaAyudaDbContext))]
-    partial class MesaAyudaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260928013134_AddTablesCanalNotificacion")]
+    partial class AddTablesCanalNotificacion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
