@@ -60,7 +60,7 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
 
         instanciaActual.Observaciones = request.Observaciones ?? string.Empty;
 
-        await ValidarCierreInstancia(caso, instanciaActual);
+        ValidarCierreInstancia(instanciaActual);
 
         if (request.Respuesta)
             await RegistrarResolucionExitosa(caso, instanciaActual);
@@ -108,17 +108,11 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
     }
 
     // Nuevo Camino Alterno: rechaza el asentamiento si no se cumple la documentación mínima exigida
-    // para el tipo de instancia (aplica tanto a "Resuelto" como a "Sin Resolver").
-    private async Task ValidarCierreInstancia(Caso caso, CasoInstancia instanciaActual)
+    // para el tipo de instancia (aplica tanto a "Resuelto" como a "Sin Resolver"). La fábrica resuelve
+    // ella misma la configuración vigente navegando la instancia, sin que el Experto conozca esas clases.
+    private static void ValidarCierreInstancia(CasoInstancia instanciaActual)
     {
-        var resultado = await _persistencia.Buscar("TipoCasoTipoInstancia",
-                                                    $"TipoCasoId == {caso.TipoCasoId} AND Orden == {instanciaActual.OrdenCasoInstancia}");
-
-        var fechaActual = DateTime.UtcNow;
-        var configuracion = resultado.Cast<TipoCasoTipoInstancia>()
-            .FirstOrDefault(t => t.FechaAlta <= fechaActual && (t.FechaBaja == null || t.FechaBaja > fechaActual));
-
-        var estrategia = FactoriaEstrategiaValidacionCierre.Instancia.ObtenerEstrategia(configuracion?.TipoValidacionCierre);
+        var estrategia = FactoriaEstrategiaValidacionCierre.Instancia.ObtenerEstrategia(instanciaActual);
 
         estrategia.ValidarCierre(instanciaActual);
     }

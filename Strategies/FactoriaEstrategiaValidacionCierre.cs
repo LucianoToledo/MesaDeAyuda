@@ -15,11 +15,21 @@ public class FactoriaEstrategiaValidacionCierre
     private FactoriaEstrategiaValidacionCierre()
     { }
 
-    public IEstrategiaValidacionCierre ObtenerEstrategia(TipoValidacionCierre? tipoValidacion)
+    // Recibe la instancia (no un dato ya resuelto) para desacoplar al Experto de las clases de
+    // configuración: la búsqueda de la vigente y la lectura de su tipo de validación son
+    // responsabilidad de la fábrica. Navega el objeto ya cargado (CasoInstancia → Caso → TipoCaso →
+    // TiposCasoTipoInstancia) en vez de volver a consultar por IDs sueltos.
+    public IEstrategiaValidacionCierre ObtenerEstrategia(CasoInstancia instancia)
     {
+        var fechaActual = DateTime.UtcNow;
+        var configuracion = instancia.Caso!.TipoCaso!.TiposCasoTipoInstancia
+            .FirstOrDefault(t => t.Orden == instancia.OrdenCasoInstancia
+                && t.FechaAlta <= fechaActual
+                && (t.FechaBaja == null || t.FechaBaja > fechaActual));
+
         // Tanto la falta de configuración vigente para la instancia como un nombre que no matchee
         // ninguno de los tres criterios conocidos son un problema de datos, no un caso de negocio.
-        switch (tipoValidacion?.Nombre)
+        switch (configuracion?.TipoValidacionCierre?.Nombre)
         {
             case "Simple":
                 return new EstrategiaValidacionSimple(_loggerFactory.CreateLogger<EstrategiaValidacionSimple>());
@@ -28,9 +38,9 @@ public class FactoriaEstrategiaValidacionCierre
             case "PorTareaRegistrada":
                 return new EstrategiaValidacionPorTareaRegistrada(_loggerFactory.CreateLogger<EstrategiaValidacionPorTareaRegistrada>());
             default:
-                throw new InvalidOperationException(tipoValidacion is null
+                throw new InvalidOperationException(configuracion is null
                     ? "No hay ninguna estrategia de validación de cierre configurada para esta instancia."
-                    : $"No existe una estrategia de validación de cierre para el tipo '{tipoValidacion.Nombre}'.");
+                    : $"No existe una estrategia de validación de cierre para el tipo '{configuracion.TipoValidacionCierre?.Nombre}'.");
         }
     }
 }
