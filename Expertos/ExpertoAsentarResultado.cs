@@ -142,7 +142,7 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
 
         var adaptadorNotificacion = await FactoriaAdaptadorNotificacionCliente.Instancia.ObtenerAdaptador(_persistencia);
 
-        adaptadorNotificacion.Notificar(new DTONotificacionCliente(caso.NumeroCliente.ToString(),
+        adaptadorNotificacion.Notificar(new DTONotificacionCliente(caso.NumeroCliente,
                                                                    $"Su caso N° {caso.NumeroCaso} ha sido resuelto."));
     }
 

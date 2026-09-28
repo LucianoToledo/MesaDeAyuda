@@ -14,7 +14,11 @@ public class AdaptadorNotificacionSms : IAdaptadorNotificacionCliente
 
     public bool Notificar(DTONotificacionCliente dtoNotificacion)
     {
-        _logger.LogInformation("[SMS] Para: {Destinatario} | {Mensaje}", dtoNotificacion.Destinatario, dtoNotificacion.Mensaje);
+        // Simulado: sin sistema externo de ventas disponible, el adaptador arma un teléfono de
+        // ejemplo a partir del número de cliente en vez de recibirlo ya resuelto.
+        var telefono = $"+54 9 11 {dtoNotificacion.NumeroCliente:0000}";
+
+        _logger.LogInformation("[SMS] Para: {Destinatario} | {Mensaje}", telefono, dtoNotificacion.Mensaje);
         return true;
     }
 }
