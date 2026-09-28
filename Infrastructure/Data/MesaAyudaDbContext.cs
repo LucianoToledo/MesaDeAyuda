@@ -100,7 +100,7 @@ public class MesaAyudaDbContext : DbContext
         );
 
         modelBuilder.Entity<ConfiguracionNotificacion>().HasData(
-            new ConfiguracionNotificacion { Id = 1, CanalHabilitadoId = 1 }
+            new ConfiguracionNotificacion { Id = 1, FechaAlta = fecha.AddYears(-1), CanalHabilitadoId = 1 }
         );
 
         modelBuilder.Entity<Sector>().HasData(
