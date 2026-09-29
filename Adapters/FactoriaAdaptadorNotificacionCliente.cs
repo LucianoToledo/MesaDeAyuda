@@ -22,11 +22,9 @@ public class FactoriaAdaptadorNotificacionCliente
     // a diferencia de FactoriaEstrategiaValidacionCierre, que ya recibe todo cargado en memoria.
     public async Task<IAdaptadorNotificacionCliente> ObtenerAdaptador(IndireccionPersistencia persistencia)
     {
-        var resultado = await persistencia.Buscar("ConfiguracionNotificacion", string.Empty);
+        var resultado = await persistencia.Buscar("ConfiguracionNotificacion", "FechaBaja == null");
 
-        var fechaActual = DateTime.UtcNow;
-        var configuracion = resultado.Cast<ConfiguracionNotificacion>()
-            .FirstOrDefault(c => c.FechaAlta <= fechaActual && (c.FechaBaja == null || c.FechaBaja > fechaActual));
+        var configuracion = resultado.Cast<ConfiguracionNotificacion>().FirstOrDefault();
 
         // Tanto la falta de configuración como un canal que no matchee ninguno de los dos
         // conocidos son un problema de datos, no un caso de negocio.
