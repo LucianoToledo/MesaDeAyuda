@@ -10,10 +10,10 @@ public class CasoInstancia
     public DateTime? FechaHoraFinPlanificada { get; set; }
     public string Observaciones { get; set; } = string.Empty;
 
-    // Relación con Caso (Padre)
+    // Relación con Caso (Padre). Sin navegación de vuelta a propósito: el DC define la
+    // navegabilidad unidireccional Caso -> CasoInstancia (ver documentación del proyecto,
+    // Sección 9); quien necesite el Caso desde una instancia ya lo tiene disponible más arriba.
     public int CasoId { get; set; }
-
-    public Caso? Caso { get; set; }
 
     // Relación con Especialista (El que lo tiene asignado/tomado)
     public int? EspecialistaId { get; set; }

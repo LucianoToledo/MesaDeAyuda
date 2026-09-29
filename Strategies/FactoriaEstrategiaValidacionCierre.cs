@@ -15,14 +15,14 @@ public class FactoriaEstrategiaValidacionCierre
     private FactoriaEstrategiaValidacionCierre()
     { }
 
-    // Recibe la instancia (no un dato ya resuelto) para desacoplar al Experto de las clases de
-    // configuración: la búsqueda de la vigente y la lectura de su tipo de validación son
-    // responsabilidad de la fábrica. Navega el objeto ya cargado (CasoInstancia → Caso → TipoCaso →
-    // TiposCasoTipoInstancia) en vez de volver a consultar por IDs sueltos.
-    public IEstrategiaValidacionCierre ObtenerEstrategia(CasoInstancia instancia)
+    // El Experto ya tiene tanto el Caso como la CasoInstancia; se los pasa ambos para que la
+    // fábrica navegue Caso → TipoCaso → TiposCasoTipoInstancia en memoria, sin necesitar
+    // navegación inversa desde la instancia (respeta la navegabilidad unidireccional del DC:
+    // Caso 1 -> * CasoInstancia). Ver documentación del proyecto, Sección 9.
+    public IEstrategiaValidacionCierre ObtenerEstrategia(Caso caso, CasoInstancia instancia)
     {
         var fechaActual = DateTime.UtcNow;
-        var configuracion = instancia.Caso!.TipoCaso!.TiposCasoTipoInstancia
+        var configuracion = caso.TipoCaso!.TiposCasoTipoInstancia
             .FirstOrDefault(t => t.Orden == instancia.OrdenCasoInstancia
                 && t.FechaAlta <= fechaActual
                 && (t.FechaBaja == null || t.FechaBaja > fechaActual));

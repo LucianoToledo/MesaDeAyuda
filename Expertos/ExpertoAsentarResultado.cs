@@ -60,7 +60,7 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
 
         instanciaActual.Observaciones = request.Observaciones ?? string.Empty;
 
-        var resultadoValidacion = ValidarCierreInstancia(instanciaActual);
+        var resultadoValidacion = ValidarCierreInstancia(caso, instanciaActual);
         if (!resultadoValidacion.EsValido)
             return resultadoValidacion;
 
@@ -112,12 +112,13 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
     }
 
     // Nuevo Camino Alterno: rechaza el asentamiento si no se cumple la documentación mínima exigida
-    // para el tipo de instancia (aplica tanto a "Resuelto" como a "Sin Resolver"). La fábrica resuelve
-    // ella misma la configuración vigente navegando la instancia, sin que el Experto conozca esas clases.
-    // El rechazo llega como valor de retorno, no como excepción (ver documentación del proyecto, Sección 9).
-    private static DTOResultadoValidacion ValidarCierreInstancia(CasoInstancia instanciaActual)
+    // para el tipo de instancia (aplica tanto a "Resuelto" como a "Sin Resolver"). La fábrica recibe
+    // el Caso y la CasoInstancia — el Experto los tiene ambos y se los pasa explícitamente, sin
+    // necesitar navegación inversa desde la instancia (ver documentación del proyecto, Sección 9).
+    // El rechazo llega como valor de retorno, no como excepción.
+    private static DTOResultadoValidacion ValidarCierreInstancia(Caso caso, CasoInstancia instanciaActual)
     {
-        var estrategia = FactoriaEstrategiaValidacionCierre.Instancia.ObtenerEstrategia(instanciaActual);
+        var estrategia = FactoriaEstrategiaValidacionCierre.Instancia.ObtenerEstrategia(caso, instanciaActual);
 
         return estrategia.ValidarCierre(instanciaActual);
     }
