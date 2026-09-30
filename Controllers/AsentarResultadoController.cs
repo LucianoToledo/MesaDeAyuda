@@ -16,7 +16,8 @@ public class AsentarResultadoController : ControllerBase
     }
 
     /// <summary>
-    /// Valida que el especialista exista y no esté dado de baja (pasos 1-4.3 del CU, C.A. N°1/N°2).
+    /// Valida que el especialista exista y no esté dado de baja
+    /// (pasos 1-4.3 del CU, C.A. N°1/N°2).
     /// </summary>
     [HttpGet("especialistas/{nroLegajoEspecialista:int}")]
     public async Task<ActionResult<DTOEspecialista>> BuscarEspecialista(int nroLegajoEspecialista)
@@ -37,9 +38,9 @@ public class AsentarResultadoController : ControllerBase
     }
 
     /// <summary>
-    /// Asienta el resultado (Resuelto/NoResuelto) de la instancia asignada al especialista y
-    /// aplica las transiciones de estado del Camino Básico y los Caminos Alternos N°5/N°6.
-    /// Si la validación de cierre rechaza el intento, devuelve 400 sin pasar por el filtro global.
+    /// Asienta el resultado (Resuelto/Sin Resolver) de la instancia asignada al especialista
+    /// (Camino Básico y C.A. N°1/N°5/N°6).
+    /// C.A. N°8: si la validación de cierre rechaza el intento, devuelve 400 sin pasar por el filtro global.
     /// </summary>
     [HttpPost("casos/asentar-resultado")]
     public async Task<IActionResult> IngresarRespuesta(AsentarResultadoRequestDto request)
