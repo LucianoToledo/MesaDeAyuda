@@ -1,4 +1,4 @@
-using MesaDeAyuda.DTOs;
+using MesaDeAyuda.Domain.Entities;
 
 namespace MesaDeAyuda.Adapters;
 
@@ -12,13 +12,9 @@ public class AdaptadorNotificacionEmail : IAdaptadorNotificacionCliente
         _logger = logger;
     }
 
-    public bool Notificar(DTONotificacionCliente dtoNotificacion)
+    public bool NotificarCliente(string mensaje, Caso caso)
     {
-        // Simulado: sin sistema externo de ventas disponible, el adaptador arma un email de ejemplo
-        // a partir del número de cliente en vez de recibirlo ya resuelto.
-        var email = $"cliente{dtoNotificacion.NumeroCliente}@example.com";
-
-        _logger.LogInformation("[Email] Para: {Destinatario} | {Mensaje}", email, dtoNotificacion.Mensaje);
+        _logger.LogInformation("[Email] Para: {Destinatario} | {Mensaje}", caso.MailCliente, mensaje);
         return true;
     }
 }

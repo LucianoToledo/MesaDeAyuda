@@ -9,6 +9,8 @@ public class Caso
     public DateTime? FechaHoraCaducidad { get; set; }
     public int NumeroIteracion { get; set; }
     public int NumeroCliente { get; set; }
+    public string MailCliente { get; set; } = string.Empty;
+    public string NumeroTelefonoCliente { get; set; } = string.Empty;
     public string Observaciones { get; set; } = string.Empty;
 
     // Relación con TipoCaso

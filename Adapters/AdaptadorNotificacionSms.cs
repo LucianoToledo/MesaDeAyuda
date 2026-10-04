@@ -1,4 +1,4 @@
-using MesaDeAyuda.DTOs;
+using MesaDeAyuda.Domain.Entities;
 
 namespace MesaDeAyuda.Adapters;
 
@@ -12,13 +12,9 @@ public class AdaptadorNotificacionSms : IAdaptadorNotificacionCliente
         _logger = logger;
     }
 
-    public bool Notificar(DTONotificacionCliente dtoNotificacion)
+    public bool NotificarCliente(string mensaje, Caso caso)
     {
-        // Simulado: sin sistema externo de ventas disponible, el adaptador arma un teléfono de
-        // ejemplo a partir del número de cliente en vez de recibirlo ya resuelto.
-        var telefono = $"+54 9 11 {dtoNotificacion.NumeroCliente:0000}";
-
-        _logger.LogInformation("[SMS] Para: {Destinatario} | {Mensaje}", telefono, dtoNotificacion.Mensaje);
+        _logger.LogWarning("[SMS] Para: {Destinatario} | {Mensaje}", caso.NumeroTelefonoCliente, mensaje);
         return true;
     }
 }

@@ -1,3 +1,4 @@
+using MesaDeAyuda.Adapters;
 using MesaDeAyuda.Expertos;
 using MesaDeAyuda.Filters;
 using MesaDeAyuda.Infrastructure.Data;
@@ -35,6 +36,8 @@ builder.Services.AddScoped<IExpertoTomarCaso, ExpertoTomarCaso>();
 builder.Services.AddScoped<IExpertoTarea, ExpertoTarea>();
 
 var app = builder.Build();
+
+FactoriaAdaptadorNotificacionCliente.Inicializar(app.Services.GetRequiredService<IServiceScopeFactory>());
 
 // --- PIPELINE DE SOLICITUDES HTTP ---
 

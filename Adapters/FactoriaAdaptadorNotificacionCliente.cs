@@ -1,33 +1,38 @@
 using MesaDeAyuda.Domain.Entities;
 using MesaDeAyuda.Persistencia;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MesaDeAyuda.Adapters;
 
 public class FactoriaAdaptadorNotificacionCliente
 {
     private static readonly FactoriaAdaptadorNotificacionCliente _instancia = new();
-
-    // La Factoria es un singleton clásico, fuera del contenedor de DI (estilo cátedra) —
-    // por eso arma su propio ILoggerFactory en vez de recibir el de la app.
     private static readonly ILoggerFactory _loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+    // Permite obtener la Indirección de Persistencia en cada llamado a ObtenerAdaptador.
+    // Se carga al iniciar la aplicación para que el Singleton pueda usarla sin recibirla como parámetro.
+    private IServiceScopeFactory? _scopeFactory;
 
     public static FactoriaAdaptadorNotificacionCliente Instancia => _instancia;
 
     private FactoriaAdaptadorNotificacionCliente()
     { }
 
-    // El canal habilitado es una configuración de la empresa (una sola fila en la base), no una
-    // preferencia por cliente: no existe ninguna entidad Cliente local con datos de contacto (ver
-    // documentación del proyecto, Sección 9). Por eso necesita la persistencia para resolverlo,
-    // a diferencia de FactoriaEstrategiaValidacionCierre, que ya recibe todo cargado en memoria.
-    public async Task<IAdaptadorNotificacionCliente> ObtenerAdaptador(IndireccionPersistencia persistencia)
+    public static void Inicializar(IServiceScopeFactory scopeFactory)
     {
+        _instancia._scopeFactory = scopeFactory;
+    }
+
+    public async Task<IAdaptadorNotificacionCliente> ObtenerAdaptador()
+    {
+        // La fábrica consulta la Indirección de Persistencia para saber qué canal
+        // de notificación tiene habilitado la empresa en este momento.
+        using var scope = _scopeFactory!.CreateScope();
+        var persistencia = scope.ServiceProvider.GetRequiredService<IndireccionPersistencia>();
+
         var resultado = await persistencia.Buscar("ConfiguracionNotificacion", "FechaBaja == null");
 
         var configuracion = resultado.Cast<ConfiguracionNotificacion>().FirstOrDefault();
 
-        // Tanto la falta de configuración como un canal que no matchee ninguno de los dos
-        // conocidos son un problema de datos, no un caso de negocio.
         switch (configuracion?.CanalHabilitado?.Nombre)
         {
             case "Email":

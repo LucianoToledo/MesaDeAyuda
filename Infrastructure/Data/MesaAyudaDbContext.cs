@@ -151,9 +151,9 @@ public class MesaAyudaDbContext : DbContext
         // Caso 1002: instancias 1 y 2 ya "Sin Resolver", instancia 3 (última) "Asignada" a Carlos López (legajo 1003) — para probar C.A. N°6.
         // Caso 1003: en estado "Disponible" (no "Tomado") — para probar C.A. N°3 (caso no encontrado).
         modelBuilder.Entity<Caso>().HasData(
-            new Caso { Id = 1, NumeroCaso = 1001, FechaHoraIngreso = fecha, FechaHoraCaducidad = fecha.AddDays(6), NumeroIteracion = 1, NumeroCliente = 5001, Observaciones = "Cliente reporta caída intermitente de conexión.", TipoCasoId = 1, EstadoId = 1 },
-            new Caso { Id = 2, NumeroCaso = 1002, FechaHoraIngreso = fecha, FechaHoraCaducidad = fecha.AddDays(6), NumeroIteracion = 1, NumeroCliente = 5002, Observaciones = "Reclamo por corte total del servicio.", TipoCasoId = 1, EstadoId = 1 },
-            new Caso { Id = 3, NumeroCaso = 1003, FechaHoraIngreso = fecha, FechaHoraCaducidad = fecha.AddDays(6), NumeroIteracion = 1, NumeroCliente = 5003, Observaciones = "Consulta por lentitud de conexión.", TipoCasoId = 1, EstadoId = 2 }
+            new Caso { Id = 1, NumeroCaso = 1001, FechaHoraIngreso = fecha, FechaHoraCaducidad = fecha.AddDays(6), NumeroIteracion = 1, NumeroCliente = 5001, MailCliente = "cliente5001@example.com", NumeroTelefonoCliente = "+54 9 11 5001", Observaciones = "Cliente reporta caída intermitente de conexión.", TipoCasoId = 1, EstadoId = 1 },
+            new Caso { Id = 2, NumeroCaso = 1002, FechaHoraIngreso = fecha, FechaHoraCaducidad = fecha.AddDays(6), NumeroIteracion = 1, NumeroCliente = 5002, MailCliente = "cliente5002@example.com", NumeroTelefonoCliente = "+54 9 11 5002", Observaciones = "Reclamo por corte total del servicio.", TipoCasoId = 1, EstadoId = 1 },
+            new Caso { Id = 3, NumeroCaso = 1003, FechaHoraIngreso = fecha, FechaHoraCaducidad = fecha.AddDays(6), NumeroIteracion = 1, NumeroCliente = 5003, MailCliente = "cliente5003@example.com", NumeroTelefonoCliente = "+54 9 11 5003", Observaciones = "Consulta por lentitud de conexión.", TipoCasoId = 1, EstadoId = 2 }
         );
 
         modelBuilder.Entity<CasoInstancia>().HasData(

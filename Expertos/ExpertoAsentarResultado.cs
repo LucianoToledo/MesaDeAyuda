@@ -146,10 +146,9 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
         caso.EstadoId = estadoCerrado.Id;
         caso.EstadoActual = estadoCerrado;
 
-        var adaptadorNotificacion = await FactoriaAdaptadorNotificacionCliente.Instancia.ObtenerAdaptador(_persistencia);
+        var adaptadorNotificacion = await FactoriaAdaptadorNotificacionCliente.Instancia.ObtenerAdaptador();
 
-        adaptadorNotificacion.Notificar(new DTONotificacionCliente(caso.NumeroCliente,
-                                                                   $"Su caso N° {caso.NumeroCaso} ha sido resuelto."));
+        adaptadorNotificacion.NotificarCliente($"Su caso N° {caso.NumeroCaso} ha sido resuelto.", caso);
     }
 
     // Camino Alterno N°5 (y, si corresponde, N°6): la instancia actual queda "Sin Resolver"
