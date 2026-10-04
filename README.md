@@ -79,8 +79,8 @@ Ya identificado, el especialista selecciona el caso puntual que va a resolver, d
 Es el corazón del caso de uso: el especialista, después de haber trabajado la instancia a su cargo, deja constancia de si logró resolverla o no. Ese registro dispara el resto del comportamiento del sistema: si fue exitoso, el caso se cierra, se cancelan las instancias que quedaban pendientes y se notifica al cliente; si no, el caso pasa al sector responsable de la siguiente instancia o, si era la última, la iteración actual termina sin éxito. También es el punto donde se exige la documentación mínima que corresponda al tipo de instancia antes de aceptar cualquiera de los dos resultados.
 
 - Body: `{ nroLegajoEspecialista, numeroCaso, respuesta, observaciones }` (`respuesta`: `true` = Resuelto, `false` = Sin Resolver).
-- Respuesta: `204 No Content`.
-- Tablas: lee `Especialista`, `Caso` + `CasoInstancia` + `CasoInstanciaTarea` (para la validación de cierre), `TipoCasoTipoInstancia` (para saber qué validación exige esa instancia) y los catálogos de estado. Escribe `CasoInstancia` (observaciones, fecha de fin real, estado) de la instancia actual y, según el resultado, de la instancia siguiente o de las que se cancelan; y `Caso` (estado y, si corresponde, fecha de fin). No crea filas nuevas, solo actualiza las existentes.
+- Respuesta: `200 OK({ mensaje })`. `400 BadRequest({ mensaje })` si la validación de cierre rechaza el intento por documentación insuficiente (C.A. N°8).
+- Tablas: lee `Especialista`, `Caso` + `CasoInstancia` + `CasoInstanciaTarea` (para la validación de cierre), `TipoCasoTipoInstancia` (para saber qué validación exige esa instancia) y los catálogos de estado; si el resultado es "Resuelto", también lee `ConfiguracionNotificacion` + `CanalNotificacion` para determinar el canal de notificación. Escribe `CasoInstancia` (observaciones, fecha de fin real, estado) de la instancia actual y, según el resultado, de la instancia siguiente o de las que se cancelan; y `Caso` (estado y, si corresponde, fecha de fin). No crea filas nuevas, solo actualiza las existentes.
 
 ## Endpoints auxiliares
 
