@@ -17,6 +17,6 @@ public class EstrategiaValidacionSimple : IEstrategiaValidacionCierre
         _logger.LogInformation("Ejecutando estrategia {Estrategia}", nameof(EstrategiaValidacionSimple));
 
         // No exige ninguna documentación previa.
-        return new DTOResultadoValidacion(true, string.Empty);
+        return new DTOResultadoValidacion(true, "Resultado asentado correctamente.");
     }
 }

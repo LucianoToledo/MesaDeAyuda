@@ -19,6 +19,6 @@ public class EstrategiaValidacionPorTareaRegistrada : IEstrategiaValidacionCierr
         if (!instancia.Tareas.Any())
             return new DTOResultadoValidacion(false, "Debe registrar al menos una tarea antes de poder asentar el resultado de la instancia.");
 
-        return new DTOResultadoValidacion(true, string.Empty);
+        return new DTOResultadoValidacion(true, "Resultado asentado correctamente.");
     }
 }

@@ -50,6 +50,6 @@ public class AsentarResultadoController : ControllerBase
         if (!resultado.EsValido)
             return BadRequest(new { mensaje = resultado.Mensaje });
 
-        return Ok(new { mensaje = "Resultado asentado correctamente." });
+        return Ok(new { mensaje = resultado.Mensaje });
     }
 }

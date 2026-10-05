@@ -19,28 +19,30 @@ public class FactoriaEstrategiaValidacionCierre
     // fábrica navegue Caso → TipoCaso → TiposCasoTipoInstancia en memoria, sin necesitar
     // navegación inversa desde la instancia (respeta la navegabilidad unidireccional del DC:
     // Caso 1 -> * CasoInstancia). Ver documentación del proyecto, Sección 9.
-    public IEstrategiaValidacionCierre ObtenerEstrategia(Caso caso, CasoInstancia instancia)
+    public IEstrategiaValidacionCierre ObtenerEstrategia(Caso caso, CasoInstancia casoInstancia)
     {
         var fechaActual = DateTime.UtcNow;
-        var configuracion = caso.TipoCaso!.TiposCasoTipoInstancia
-            .FirstOrDefault(t => t.Orden == instancia.OrdenCasoInstancia
-                && t.FechaAlta <= fechaActual
-                && (t.FechaBaja == null || t.FechaBaja > fechaActual));
+        var tipoCasoTipoInstancia = caso.TipoCaso!.TiposCasoTipoInstancia.FirstOrDefault(tipoCasoTipoInstancia => tipoCasoTipoInstancia.Orden == casoInstancia.OrdenCasoInstancia
+                                                                                           && tipoCasoTipoInstancia.FechaAlta <= fechaActual
+                                                                                           && (tipoCasoTipoInstancia.FechaBaja == null || tipoCasoTipoInstancia.FechaBaja > fechaActual));
 
         // Tanto la falta de configuración vigente para la instancia como un nombre que no matchee
         // ninguno de los tres criterios conocidos son un problema de datos, no un caso de negocio.
-        switch (configuracion?.TipoValidacionCierre?.Nombre)
+        switch (tipoCasoTipoInstancia?.TipoValidacionCierre?.Nombre)
         {
             case "Simple":
                 return new EstrategiaValidacionSimple(_loggerFactory.CreateLogger<EstrategiaValidacionSimple>());
+
             case "PorObservaciones":
                 return new EstrategiaValidacionPorObservaciones(_loggerFactory.CreateLogger<EstrategiaValidacionPorObservaciones>());
+
             case "PorTareaRegistrada":
                 return new EstrategiaValidacionPorTareaRegistrada(_loggerFactory.CreateLogger<EstrategiaValidacionPorTareaRegistrada>());
+
             default:
-                throw new InvalidOperationException(configuracion is null
+                throw new InvalidOperationException(tipoCasoTipoInstancia is null
                     ? "No hay ninguna estrategia de validación de cierre configurada para esta instancia."
-                    : $"No existe una estrategia de validación de cierre para el tipo '{configuracion.TipoValidacionCierre?.Nombre}'.");
+                    : $"No existe una estrategia de validación de cierre para el tipo '{tipoCasoTipoInstancia.TipoValidacionCierre?.Nombre}'.");
         }
     }
 }
