@@ -34,6 +34,7 @@ builder.Services.AddScoped<IExpertoAsentarResultado, ExpertoAsentarResultado>();
 // Expertos de utilidad de testing (no son parte del CU principal, ver documentación del proyecto, Sección 3)
 builder.Services.AddScoped<IExpertoTomarCaso, ExpertoTomarCaso>();
 builder.Services.AddScoped<IExpertoTarea, ExpertoTarea>();
+builder.Services.AddScoped<IExpertoBandeja, ExpertoBandeja>();
 
 var app = builder.Build();
 
@@ -48,6 +49,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.UseAuthorization();
 
