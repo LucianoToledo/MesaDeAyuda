@@ -27,9 +27,8 @@ public class FactoriaAdaptadorNotificacionCliente
         // La fábrica consulta la Indirección de Persistencia para saber qué canal
         // de notificación tiene habilitado la empresa en este momento.
         using var scope = _scopeFactory!.CreateScope();
-        var persistencia = scope.ServiceProvider.GetRequiredService<IndireccionPersistencia>();
-
-        var resultado = await persistencia.Buscar("ConfiguracionNotificacion", "FechaBaja == null");
+        var indireccionPersistencia = scope.ServiceProvider.GetRequiredService<IndireccionPersistencia>();
+        var resultado = await indireccionPersistencia.Buscar("ConfiguracionNotificacion", "FechaBaja == null");
 
         var configuracion = resultado.Cast<ConfiguracionNotificacion>().FirstOrDefault();
 

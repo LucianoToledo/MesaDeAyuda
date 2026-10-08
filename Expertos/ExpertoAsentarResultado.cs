@@ -18,11 +18,11 @@ public interface IExpertoAsentarResultado
 
 public class ExpertoAsentarResultado : IExpertoAsentarResultado
 {
-    private readonly IndireccionPersistencia _persistencia;
+    private readonly IndireccionPersistencia _indireccionPersistencia;
 
     public ExpertoAsentarResultado(IndireccionPersistencia persistencia)
     {
-        _persistencia = persistencia;
+        _indireccionPersistencia = persistencia;
     }
 
     public async Task<DTOEspecialista> BuscarEspecialista(int nroLegajoEspecialista)
@@ -61,7 +61,8 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
         instanciaActual.Observaciones = request.Observaciones ?? string.Empty;
 
         var resultadoValidacion = ValidarCierreInstancia(caso, instanciaActual);
-        if (!resultadoValidacion.EsValido)
+
+        if (resultadoValidacion.EsValido == false)
             return resultadoValidacion;
 
         if (request.Respuesta)
@@ -69,7 +70,7 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
         else
             await RegistrarInstanciaSinResolver(caso, instanciaActual);
 
-        await _persistencia.Guardar(caso);
+        await _indireccionPersistencia.Guardar(caso);
 
         return new DTOResultadoValidacion(true, string.Empty);
     }
@@ -79,8 +80,8 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
         if (nroLegajoEspecialista <= 0)
             throw new BusinessException("Los datos ingresados son incorrectos. Intente nuevamente.");
 
-        var resultado = await _persistencia.Buscar("Especialista",
-                                                    $"Legajo == {nroLegajoEspecialista} AND FechaHoraBaja == null");
+        var resultado = await _indireccionPersistencia.Buscar("Especialista",
+                                                               $"Legajo == {nroLegajoEspecialista} AND FechaHoraBaja == null");
 
         return resultado.Cast<Especialista>().FirstOrDefault()
             ?? throw new BusinessException("No se ha podido encontrar el Especialista ingresado. Intente nuevamente.");
@@ -91,7 +92,7 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
         if (numeroCaso <= 0)
             throw new BusinessException("Los datos ingresados son incorrectos. Intente nuevamente.");
 
-        var resultado = await _persistencia.Buscar("Caso", $"NumeroCaso == {numeroCaso}");
+        var resultado = await _indireccionPersistencia.Buscar("Caso", $"NumeroCaso == {numeroCaso}");
         var caso = resultado.Cast<Caso>().FirstOrDefault();
 
         if (caso is null || caso.EstadoActual?.Nombre != "Tomado")
@@ -126,12 +127,15 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
     // Camino Básico, pasos 9.1 a 9.8, + paso 9.9 agregado (notificar al cliente)
     private async Task RegistrarResolucionExitosa(Caso caso, CasoInstancia instanciaActual)
     {
+        //Buscamos en la BD el estado "Resuelto"
         var estadoResuelto = await BuscarEstadoCasoInstancia("Resuelto");
 
+        //Le seteamos al casoInstancia actual el estado "Resuelto"
         instanciaActual.FechaHoraFinReal = DateTime.UtcNow;
         instanciaActual.EstadoId = estadoResuelto.Id;
         instanciaActual.EstadoActual = estadoResuelto;
 
+        //Buscamos en la BD el estado "Cancelada" para setearlo a los casoInstancia n+1
         var estadoCancelada = await BuscarEstadoCasoInstancia("Cancelada");
 
         foreach (var instancia in caso.Instancias.Where(i => i.Id != instanciaActual.Id && i.EstadoActual?.Nombre == "Sin Asignar"))
@@ -140,8 +144,10 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
             instancia.EstadoActual = estadoCancelada;
         }
 
+        //Buscamos el estado "Cerrado" de Caso
         var estadoCerrado = await BuscarEstadoCaso("Cerrado");
 
+        //Seteamos el estado "Cerrado" al Caso
         caso.FechaHoraFinCaso = DateTime.UtcNow;
         caso.EstadoId = estadoCerrado.Id;
         caso.EstadoActual = estadoCerrado;
@@ -189,7 +195,7 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
 
     private async Task<EstadoCaso> BuscarEstadoCaso(string nombre)
     {
-        var resultado = await _persistencia.Buscar("EstadoCaso", $"Nombre == \"{nombre}\" AND FechaHoraBaja == null");
+        var resultado = await _indireccionPersistencia.Buscar("EstadoCaso", $"Nombre == \"{nombre}\" AND FechaHoraBaja == null");
 
         return resultado.Cast<EstadoCaso>().FirstOrDefault()
             ?? throw new BusinessException($"No se encontró el estado '{nombre}'.");
@@ -197,7 +203,7 @@ public class ExpertoAsentarResultado : IExpertoAsentarResultado
 
     private async Task<EstadoCasoInstancia> BuscarEstadoCasoInstancia(string nombre)
     {
-        var resultado = await _persistencia.Buscar("EstadoCasoInstancia", $"Nombre == \"{nombre}\" AND FechaHoraBaja == null");
+        var resultado = await _indireccionPersistencia.Buscar("EstadoCasoInstancia", $"Nombre == \"{nombre}\" AND FechaHoraBaja == null");
 
         return resultado.Cast<EstadoCasoInstancia>().FirstOrDefault()
             ?? throw new BusinessException($"No se encontró el estado '{nombre}'.");
