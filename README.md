@@ -54,6 +54,28 @@ Para volver la base al estado inicial del seed en cualquier momento (solo en ent
 POST api/v1/seed/reset
 ```
 
+## Interfaz web
+
+Además de Swagger, el proyecto incluye una interfaz web estática servida por el mismo servidor ASP.NET Core. No forma parte del caso de uso ni del diseño académico: es una herramienta de demostración que consume los mismos endpoints que se documentan más abajo.
+
+Disponible en la raíz del servidor una vez que la API está corriendo:
+```
+https://localhost:{puerto}/
+```
+
+**Uso básico**
+
+1. Ingresá un número de legajo en el campo del encabezado y presioná Enter o el botón "Cargar". El sistema valida el especialista contra la API y muestra su bandeja de casos asignados.
+2. Hacé clic en un caso para abrir el detalle: datos del caso, campo de observaciones, registro de tareas y botones para asentar el resultado (Resuelto o Sin Resolver).
+3. Al asentar, la bandeja se recarga automáticamente.
+
+**Panel de utilidades** (botón "Utilidades" en el encabezado)
+
+- **Tomar Caso**: asigna al especialista indicado la próxima instancia `A Asignar` disponible en su sector. Útil para avanzar el flujo cuando la bandeja de un especialista está vacía porque el caso todavía no fue tomado.
+- **Resetear Base**: borra toda la base y la recrea desde cero con el seed inicial. Solo disponible en entorno `Development`.
+
+> El endpoint `GET api/v1/bandeja` que alimenta la bandeja es una utilidad de desarrollo, no forma parte del CU ni del diagrama de clases.
+
 ## Endpoints del caso de uso
 
 Los tres pasos de Asentar Resultado, pensados para llamarse en secuencia desde la interfaz:
